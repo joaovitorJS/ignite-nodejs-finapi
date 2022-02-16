@@ -7,6 +7,21 @@ app.use(express.json());
 
 const customers = [];
 
+// Middleware de verificação de conta
+function verifyIfExistsAccountCPF(request, response, next) {
+  const { cpf } = request.headers;
+  const customer = customers.find((customer) => customer.cpf === cpf);
+
+  if (!customer) {
+    return response.status(400).json({ error: "Custumer not found" });
+  }
+
+  request.customer = customer;
+
+  return next();
+}
+
+
 /**
  * cpf - string
  * name - string
@@ -32,14 +47,13 @@ app.post("/account", (request, response) => {
   response.status(201).send();
 });
 
-app.get("/statement", (request, response) => {
-  const { cpf } = request.headers;
 
-  const customer = customers.find((customer) => customer.cpf === cpf);
+// app.use(verifyIfExistsAccountCPF); outra forma de passar o middleware para as rotas, porém neste caso, esse middleware será aplicada em todas as rotas.
 
-  if (!customer) {
-    return response.status(400).json({ error: "Custumer not found" });
-  }
+app.get("/statement", verifyIfExistsAccountCPF, (request, response) => {
+
+  const { customer } = request;
+  
 
   return response.json(customer.statement);
 });
