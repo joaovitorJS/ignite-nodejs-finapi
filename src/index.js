@@ -1,4 +1,5 @@
 const express = require('express');
+const { send } = require('express/lib/response');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
@@ -51,11 +52,24 @@ app.post("/account", (request, response) => {
 // app.use(verifyIfExistsAccountCPF); outra forma de passar o middleware para as rotas, porém neste caso, esse middleware será aplicada em todas as rotas.
 
 app.get("/statement", verifyIfExistsAccountCPF, (request, response) => {
-
   const { customer } = request;
   
-
   return response.json(customer.statement);
+});
+
+app.post("/deposit", verifyIfExistsAccountCPF, (request, response) => {
+  const { description, amount } = request.body;
+  const { customer } = request;
+  const statementOperation = {
+    description,
+    amount,
+    created_at: new Date(),
+    type: "credit"
+  }
+
+  customer.statement.push(statementOperation);
+
+  return response.status(201).send();
 });
 
 app.listen(3333);
