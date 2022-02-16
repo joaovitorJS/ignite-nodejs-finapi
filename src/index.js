@@ -1,5 +1,4 @@
 const express = require('express');
-const { send } = require('express/lib/response');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
@@ -11,6 +10,7 @@ const customers = [];
 // Middleware de verificação de conta
 function verifyIfExistsAccountCPF(request, response, next) {
   const { cpf } = request.headers;
+
   const customer = customers.find((customer) => customer.cpf === cpf);
 
   if (!customer) {
@@ -138,5 +138,13 @@ app.delete("/account",  verifyIfExistsAccountCPF, (request, response) => {
 
   return response.status(200).json(customers);
 });
+
+app.get("/balance", verifyIfExistsAccountCPF, (request, response) => {
+  const { customer } = request;
+
+  const balance = getBalance(customer.statement);
+
+  return response.json(balance);
+})
 
 app.listen(3333);
